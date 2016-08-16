@@ -7,14 +7,15 @@
   <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
 </head>
 <body>
-  Доступные логи <select id='availableFiles' onchange="getData(this.value)">
+  Доступные логи <select id='availableFiles' onchange="getData(this.selectedIndex)">
   </select> 
   <div id="graph" style="white-space: nowrap;"></div>
 
   <script>      
-      function getData(value){        
+      var answ;
+      function getData(index){        
         var xhr3 = new XMLHttpRequest();
-        xhr3.open('GET','/getCurrentData?num='+value, true);
+        xhr3.open('GET','/getCurrentData?num='+answ(index), true);
         xhr3.send();
         xhr3.onload = function(){
             var answ = JSON.parse(xhr3.responseText);
@@ -41,7 +42,7 @@
       xhr2.open('GET','/getFilesList', true);
       xhr2.send();
       xhr2.onload = function(){
-          var answ = JSON.parse(xhr2.responseText);
+          answ = JSON.parse(xhr2.responseText);
           var select = $("#availableFiles")[0];
           while (select.firstChild) {
             select.removeChild(select.firstChild);
@@ -49,7 +50,8 @@
           console.log(answ)
           for (var f in answ){
               var opt = document.createElement('option');
-              opt.innerHTML = answ[f];
+              var d = new Date(parseInt(answ[f].split('.')[0])).toString().split(' ');              
+              opt.innerHTML = d[0]+' '+d[1]+' '+d[2]+' '+d[3]+' '+d[4];
               select.appendChild(opt); 
           }
       }

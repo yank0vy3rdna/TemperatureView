@@ -6,12 +6,15 @@ var request = require('request');
 var http = require('http');
 var url = require('url');
 var fs = require("fs");
+var selected = '';
 var index = fs.readFileSync('./index.html');
 
 setInterval(function () {
     index = fs.readFileSync('./index.html');
     dir = fs.readdirSync('./files');
     sortDir();
+    data = fs.readFileSync('./files/' + dir[0], 'utf8');
+    answ = csvToJson(data.toString());
 }, 200); //for debug
 
 var dir, data, answ;
@@ -79,7 +82,9 @@ var server = http.createServer(function (req, res) {
                 req.on('end', function () {
                     var date = new Date();
                     try {
-                        fs.writeFile("./files/" + date.getTime() + '.csv', fullBody, function (err) {
+                        var month = date.getMonth();
+                        var day = date.getDate();
+                        fs.writeFile("./files/" +  (date.getFullYear() + (month < 10) ? ('0'+month) : month + (day < 10) ? ('0'+day) : day) + '.csv', fullBody, function (err) {
                             if (err)
                                 return console.log(err);
                             console.log("The file was saved!");
@@ -100,8 +105,7 @@ var server = http.createServer(function (req, res) {
             }
             break;
         }
-        case '/data': {
-            console.log(answ)
+        case '/data': {            
             res.statusCode = 200;
             res.end(answ);
             break;

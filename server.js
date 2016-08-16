@@ -13,7 +13,7 @@ setInterval(function () { index = fs.readFileSync('./index.html'); }, 200); //fo
 var dir = fs.readdirSync('./files');
 var data = fs.readFileSync('./files/' + dir[0], 'utf8');
 
-var answ = csvToJson(data);
+var answ = csvToJson(data.toString());
 
 var port = 8553;
 var serverUrl = "http://127.0.0.1:" + port;
@@ -24,6 +24,11 @@ var server = http.createServer(function (req, res) {
     console.log(req.socket.remoteAddress + ': ' + urlParsed.pathname);
 
     switch (urlParsed.pathname) {
+        case '/getFilesList': {
+            res.statusCode = 200;
+            res.end(JSON.stringify(dir));
+            break;
+        }
         case '/': {
             res.statusCode = 200;
             res.end(index);

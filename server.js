@@ -8,7 +8,10 @@ var url = require('url');
 var fs = require("fs");
 var index = fs.readFileSync('./index.html');
 
-setInterval(function () { index = fs.readFileSync('./index.html'); }, 200); //for debug
+setInterval(function () { 
+    index = fs.readFileSync('./index.html');
+    dir = fs.readdirSync('./files'); 
+}, 200); //for debug
 
 var dir = fs.readdirSync('./files');
 var data = fs.readFileSync('./files/' + dir[0], 'utf8');
@@ -24,6 +27,26 @@ var server = http.createServer(function (req, res) {
     console.log(req.socket.remoteAddress + ': ' + urlParsed.pathname);
 
     switch (urlParsed.pathname) {
+        case '/favicon.ico': {
+            res.end(fs.readFileSync('./favicon-192x192.png'));
+            break;
+        }
+        case '/getCurrentData': {
+            console.log(urlParsed.query.num);
+            try{
+                data = fs.readFileSync('./files/' + urlParsed.query.num, 'utf8');
+                answ = csvToJson(data.toString());
+
+                res.statusCode = 200;
+                res.end(answ);
+            }
+            catch(e){
+                console.error('ERROR:',e);
+                res.statusCode = 403;
+                res.end('Invalid request');
+            }
+            break;
+        }
         case '/getFilesList': {
             res.statusCode = 200;
             res.end(JSON.stringify(dir));
@@ -36,6 +59,7 @@ var server = http.createServer(function (req, res) {
         }
         case '/setData': {
             if (req.method == 'POST') {
+                console.log('POST REQUEST')
                 console.log("[200] " + req.method + " to " + req.url);
                 var fullBody = '';
 

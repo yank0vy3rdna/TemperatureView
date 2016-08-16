@@ -7,11 +7,22 @@
   <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
 </head>
 <body>
-  Доступные логи <select id='availableFiles' onchange="getData">
+  Доступные логи <select id='availableFiles' onchange="getData(this.value)">
   </select> 
   <div id="graph" style="white-space: nowrap;"></div>
 
   <script>      
+      function getData(value){        
+        var xhr3 = new XMLHttpRequest();
+        xhr3.open('GET','/getCurrentData?num='+value, true);
+        xhr3.send();
+        xhr3.onload = function(){
+            var answ = JSON.parse(xhr3.responseText);
+            console.log(answ);          
+            createGraph(answ);  
+        }    
+      }
+      
       //data getting
       var xhr = new XMLHttpRequest();
       xhr.open('GET','/data', true);

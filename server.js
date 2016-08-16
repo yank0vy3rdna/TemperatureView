@@ -1,6 +1,6 @@
 String.prototype.replaceAll = function (search, replace) {
     return this.split(search).join(replace);
-}
+};
 
 var request = require('request');
 var http = require('http');
@@ -8,15 +8,23 @@ var url = require('url');
 var fs = require("fs");
 var index = fs.readFileSync('./index.html');
 
-setInterval(function () { 
+setInterval(function () {
     index = fs.readFileSync('./index.html');
-    dir = fs.readdirSync('./files'); 
+    dir = fs.readdirSync('./files');
+    sortDir();
 }, 200); //for debug
 
-var dir = fs.readdirSync('./files');
-var data = fs.readFileSync('./files/' + dir[0], 'utf8');
+var dir, data, answ;
 
-var answ = csvToJson(data.toString());
+try {
+    dir = fs.readdirSync('./files');
+    sortDir();
+    data = fs.readFileSync('./files/' + dir[0], 'utf8');
+    answ = csvToJson(data.toString());
+}
+catch (e) {
+    console.error('ERROR:', 'An occurrence with first-loading');
+}
 
 var port = 8553;
 var serverUrl = "http://127.0.0.1:" + port;
@@ -33,15 +41,15 @@ var server = http.createServer(function (req, res) {
         }
         case '/getCurrentData': {
             console.log(urlParsed.query.num);
-            try{
+            try {
                 data = fs.readFileSync('./files/' + urlParsed.query.num, 'utf8');
                 answ = csvToJson(data.toString());
 
                 res.statusCode = 200;
                 res.end(answ);
             }
-            catch(e){
-                console.error('ERROR:',e);
+            catch (e) {
+                console.error('ERROR:', e);
                 res.statusCode = 403;
                 res.end('Invalid request');
             }
@@ -70,11 +78,16 @@ var server = http.createServer(function (req, res) {
 
                 req.on('end', function () {
                     var date = new Date();
-                    fs.writeFile("/files/"+date.getTime()+'.csv', fullBody, function (err) {
-                        if (err)
-                            return console.log(err);                        
-                        console.log("The file was saved!");
-                    });
+                    try {
+                        fs.writeFile("./files/" + date.getTime() + '.csv', fullBody, function (err) {
+                            if (err)
+                                return console.log(err);
+                            console.log("The file was saved!");
+                        });
+                    }
+                    catch (e) {
+                        console.error('ERROR:', 'An occurrence with .csv saving');
+                    }
                     // request ended -> do something with the data
                     res.writeHead(200, "OK", { 'Content-Type': 'text/html' });
                     res.end();
@@ -88,6 +101,7 @@ var server = http.createServer(function (req, res) {
             break;
         }
         case '/data': {
+            console.log(answ)
             res.statusCode = 200;
             res.end(answ);
             break;
@@ -110,6 +124,20 @@ function csvToJson(csv) {
     return JSON.stringify(arr);
 }
 
+function sortDir() {
+    var arr = [];
+    for (var d in dir) {
+        arr.push(dir[d].split('.')[0]);
+    }    
+    arr.sort(compareNumbers);    
+    arr = arr.reverse();
+    for (var a in arr) arr[a] += '.csv';
+    dir = arr;
+}
+
+function compareNumbers(a, b) {
+  return a - b;
+}
 
 /*
 request(serverUrl, function (error, response, body) {

@@ -32,6 +32,10 @@
           console.log(answ);          
           createGraph(answ);        
       }
+      setInterval(function(){
+          xhr.open('GET','/data', true);
+          xhr.send();
+      }, 5000);
 
       var xhr2 = new XMLHttpRequest();
       xhr2.open('GET','/getFilesList', true);
@@ -42,6 +46,7 @@
           while (select.firstChild) {
             select.removeChild(select.firstChild);
           }        
+          console.log(answ)
           for (var f in answ){
               var opt = document.createElement('option');
               opt.innerHTML = answ[f];

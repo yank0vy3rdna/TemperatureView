@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Temparature</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
+</head>
+<body>
+  <div id="graph" style="white-space: nowrap;"></div>
+
+  <script>  
+      //data getting
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET','/data', true);
+      xhr.send();
+
+      xhr.onload = function(){
+          var answ = JSON.parse(xhr.responseText);
+          console.log(answ);          
+          createGraph(answ);        
+      }
+  </script>
+  <script>
+      var intTimer;
+      $('#graph').height($(window).height()*0.9);
+      var layout = {
+        title: 'Temperatures',
+        width: $('#graph').width(),
+        height: $('#graph').height()
+        };        
+      window.onresize = function(){
+          console.log('resize')
+          clearTimeout(intTimer);
+          intTimer = setTimeout(function(){
+            /*var divNew = document.createElement('div');
+            divNew.id = 'graph';
+            document.body.removeChild(document.getElementById('graph'));
+            document.body.appendChild(divNew)*/
+            $('#graph').height($(window).height()*0.9);
+            layout.width = $('#graph').width();
+            layout.height = $('#graph').height();
+            console.log($('#graph').width(),$('#graph').height())
+            Plotly.relayout('graph',layout);
+          }, 100);          
+      }
+      function createGraph(graphs) {
+        //interface script
+        var data = [];
+        for(var g in graphs){
+            var trace = {
+                x: [],
+                y: [],                
+                //type: 'scatter',
+                mode: 'lines+markers',
+                name: 'pipe ' + (parseInt(g)+1),
+                xValueLabel: function (x) {
+                    return x;
+                }
+            }
+            for (var i in graphs[g]){
+                trace.x.push(parseInt(graphs[g][i].x));
+                trace.y.push(parseFloat(graphs[g][i].y));
+            }
+            data.push(trace);    
+        }
+        
+        var layout = {
+        title: 'Temperatures'
+        };
+
+        console.log(data)
+
+        Plotly.newPlot('graph', data, layout);
+      }
+  </script>
+</body>
+</html>

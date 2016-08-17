@@ -2,24 +2,59 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Temparature</title>
+  <title>Temperature</title>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
+  <style>
+      .onoffswitch{position:relative;width:133px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none}.onoffswitch-checkbox{display:none}.onoffswitch-label{display:block;overflow:hidden;cursor:pointer;border:2px solid #999;border-radius:7px}.onoffswitch-inner{display:block;width:200%;margin-left:-100%;transition:margin .3s ease-in 0s}.onoffswitch-inner:after,.onoffswitch-inner:before{display:block;float:left;width:50%;height:30px;padding:0;line-height:30px;font-size:14px;font-family:Trebuchet,Arial,sans-serif;font-weight:700;box-sizing:border-box}.onoffswitch-inner:before{content:"AvrgLinesOn";padding-left:10px;background-color:#34A7C1;color:#FFF}.onoffswitch-inner:after{content:"AvrgLinesOff";padding-right:10px;background-color:#EEE;color:#999;text-align:right}.onoffswitch-switch{display:block;width:21px;margin:4.5px;background:#FFF;position:absolute;top:0;bottom:0;right:99px;border:2px solid #999;border-radius:7px;transition:all .3s ease-in 0s}.onoffswitch-checkbox:checked+.onoffswitch-label .onoffswitch-inner{margin-left:0}.onoffswitch-checkbox:checked+.onoffswitch-label .onoffswitch-switch{right:0}
+  </style>
 </head>
 <body>
   Доступные логи <select id='availableFiles' onchange="getData(this.selectedIndex)">
-  </select> 
-  <div id="graph" style="white-space: nowrap;"></div>
+  </select><br>
+  Разрешение графика <input type="range" style='width: 300px;' min="5" max="1500" value="500" step="5" onchange="setRezol(this.value, (this.value == this.max))" />
+  <span id="rezol">50</span><br>
+  Размер маркера <input type="range" style='width: 200px;' min="1" max="8" value="4" step="1" onchange="setMarkerSize(this.value)" />
+  <span id="markerSize">4</span><br><br>
+  <div class="onoffswitch" style='position: fixed; z-index: 1000'>
+    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked onchange="ChangeAvrgOn(this.checked)">
+    <label class="onoffswitch-label" for="myonoffswitch">
+        <span class="onoffswitch-inner"></span>
+        <span class="onoffswitch-switch"></span>
+    </label>
+  </div>   
+  <div id="graph" style="white-space: nowrap; margin-top:0px"></div>
 
   <script>      
       var answ;
+      var rezol = 500;
+      var markerSize = 4;
+      var AvrgOn = true;
+      function ChangeAvrgOn(isChecked){
+          AvrgOn = isChecked;
+          createGraph(answ);
+      }
+      function setRezol(newValue, isMax)
+      {        
+        if (!isMax) rezol = newValue;
+        else rezol = answ[0].length;
+        console.log(rezol,answ[0].length)
+        document.getElementById("rezol").innerHTML=rezol;                 
+        createGraph(answ);
+      }
+      function setMarkerSize(newValue)
+      {
+        document.getElementById("markerSize").innerHTML=newValue;
+        markerSize = newValue;                
+        createGraph(answ);
+      }
+
       function getData(index){        
         var xhr3 = new XMLHttpRequest();
         xhr3.open('GET','/getCurrentData?num='+answ(index), true);
         xhr3.send();
-        xhr3.onload = function(){
-            var answ = JSON.parse(xhr3.responseText);
-            console.log(answ);          
+        xhr3.onload = function(){            
+            answ = JSON.parse(xhr3.responseText);                    
             createGraph(answ);  
         }    
       }
@@ -29,29 +64,28 @@
       xhr.open('GET','/data', true);
       xhr.send();
       xhr.onload = function(){
-          var answ = JSON.parse(xhr.responseText);
-          console.log(answ);          
+          answ = JSON.parse(xhr.responseText);          
           createGraph(answ);        
       }
       setInterval(function(){
           xhr.open('GET','/data', true);
           xhr.send();
-      }, 5000);
+      }, 50000);
 
+      var files;
       var xhr2 = new XMLHttpRequest();
       xhr2.open('GET','/getFilesList', true);
       xhr2.send();
       xhr2.onload = function(){
-          answ = JSON.parse(xhr2.responseText);
+          files = JSON.parse(xhr2.responseText);
           var select = $("#availableFiles")[0];
           while (select.firstChild) {
             select.removeChild(select.firstChild);
-          }        
-          console.log(answ)
-          for (var f in answ){
+          }                  
+          for (var f in files){
               var opt = document.createElement('option');
-              var d = new Date(parseInt(answ[f].split('.')[0])).toString().split(' ');              
-              opt.innerHTML = d[0]+' '+d[1]+' '+d[2]+' '+d[3]+' '+d[4];
+              var d = files[f].split('.')[0].toString();                            
+              opt.innerHTML = d[6]+d[7]+'.'+d[4]+d[5]+'.'+d[0]+d[1]+d[2]+d[3];
               select.appendChild(opt); 
           }
       }
@@ -64,8 +98,7 @@
         width: $('#graph').width(),
         height: $('#graph').height()
         };        
-      window.onresize = function(){
-          console.log('resize')
+      window.onresize = function(){          
           clearTimeout(intTimer);
           intTimer = setTimeout(function(){
             /*var divNew = document.createElement('div');
@@ -74,14 +107,17 @@
             document.body.appendChild(divNew)*/
             $('#graph').height($(window).height()*0.9);
             layout.width = $('#graph').width();
-            layout.height = $('#graph').height();
-            console.log($('#graph').width(),$('#graph').height())
+            layout.height = $('#graph').height();            
             Plotly.relayout('graph',layout);
           }, 100);          
       }
+
+      var colorsSet = [
+          'red','#99cc00','blue','coral','darkgreen','#33ccff','#cc00cc'
+      ]
       function createGraph(graphs) {
         //interface script
-        var data = [];
+        var data = [];        
         for(var g in graphs){
             var trace = {
                 x: [],
@@ -91,20 +127,48 @@
                 name: 'pipe ' + (parseInt(g)+1),
                 xValueLabel: function (x) {
                     return x;
+                },
+                marker: {                    
+                    size: markerSize                    
+                },      
+                line: {
+                    color: colorsSet[g]
+                } 
+            }
+            if (rezol > graphs[g].length) rezol = graphs[g].length;
+            var coeff = Math.floor(graphs[g].length/rezol);
+            var xsum = 0;
+            var ysum = 0;
+            var totalSum = 0;
+            if (coeff < 1) coeff = 1;            
+            if (AvrgOn) for (var i2 = 0; i2 < graphs[g].length; i2++) totalSum += parseFloat(graphs[g][i2].y);
+            for (var i = 0; i < graphs[g].length-coeff; i += coeff){
+                xsum = ysum = 0;                
+                for (var ii = 0; ii < coeff; ii++){
+                    xsum += parseInt(graphs[g][i+ii].x)
+                    ysum += parseFloat(graphs[g][i+ii].y)                    
                 }
-            }
-            for (var i in graphs[g]){
-                trace.x.push(parseInt(graphs[g][i].x));
-                trace.y.push(parseFloat(graphs[g][i].y));
-            }
-            data.push(trace);    
-        }
-        
+                trace.x.push(xsum/coeff);
+                trace.y.push(ysum/coeff);
+            }            
+            if (AvrgOn) var averageTr = {
+                type: 'scatter',
+                x: [-50, graphs[g].length-coeff+50],
+                y: [totalSum/graphs[g].length, totalSum/graphs[g].length],
+                mode: 'lines',
+                name: 'Avrg: '+(totalSum/graphs[g].length).toFixed(1),
+                line: {
+                    color: colorsSet[g],
+                    width: 1
+                }
+            };            
+            data.push(trace);
+            if (AvrgOn) data.push(averageTr)    
+        }        
+
         var layout = {
         title: 'Temperatures'
-        };
-
-        console.log(data)
+        };        
 
         Plotly.newPlot('graph', data, layout);
       }

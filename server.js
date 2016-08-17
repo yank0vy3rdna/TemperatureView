@@ -8,16 +8,23 @@ var url = require('url');
 var fs = require("fs");
 var selected = '';
 var index = fs.readFileSync('./index.html');
+var averageTime = 100;
 
 setInterval(function () {
     index = fs.readFileSync('./index.html');
     dir = fs.readdirSync('./files');
-    sortDir();
+    //dir2 = fs.readdirSync('./times');
+    if (dir.length < 1) return;
+    dir = sortDir(dir,'csv');
+    //dir2 = sortDir(dir2,'times');        
     data = fs.readFileSync('./files/' + dir[0], 'utf8');
+    //time = fs.readFileSync('./times/' + dir2[0], 'utf8');
     answ = csvToJson(data.toString());
+
+    //readTimes(time);
 }, 200); //for debug
 
-var dir, data, answ;
+var dir, data, answ, time, dir2;
 
 try {
     dir = fs.readdirSync('./files');
@@ -68,7 +75,8 @@ var server = http.createServer(function (req, res) {
             res.end(index);
             break;
         }
-        case '/setData': {
+        case '/setAverageTime': {
+            console.log(req.method)
             if (req.method == 'POST') {
                 console.log('POST REQUEST')
                 console.log("[200] " + req.method + " to " + req.url);
@@ -84,7 +92,51 @@ var server = http.createServer(function (req, res) {
                     try {
                         var month = date.getMonth();
                         var day = date.getDate();
-                        fs.writeFile("./files/" +  (date.getFullYear() + (month < 10) ? ('0'+month) : month + (day < 10) ? ('0'+day) : day) + '.csv', fullBody, function (err) {
+                        var path = "./times/" +  date.getFullYear().toString();                        
+                        path +=  (month < 10) ? ('0'+month.toString()) : month.toString();                        
+                        path +=  (day < 10) ? ('0'+day.toString()) : day.toString() + '.times';
+                        console.log('WRITE TIMES FILE',path);      
+                        fs.appendFile(path, fullBody+'N', function (err) {
+                            if (err)
+                                return console.log(err);
+                            console.log("The times file was appended!");
+                        });
+                    }
+                    catch (e) {
+                        console.error('ERROR:', 'An occurrence with .times saving');
+                    }
+                    // request ended -> do something with the data
+                    res.writeHead(200, "OK", { 'Content-Type': 'text/html' });
+                    res.end();
+                });
+
+            } else {
+                console.log("[405] " + req.method + " to " + req.url);
+                res.writeHead(405, "Method not supported", { 'Content-Type': 'text/html' });
+                res.end('<html><head><title>405 - Method not supported</title></head><body><h1>Method not supported.</h1></body></html>');
+            }
+            break;
+        }
+        case '/setData': {            
+            if (req.method == 'POST') {
+                console.log('POST REQUEST')
+                console.log("[200] " + req.method + " to " + req.url);
+                var fullBody = '';
+
+                req.on('data', function (chunk) {
+                    // append the current chunk of data to the fullBody variable
+                    fullBody += chunk.toString();
+                });
+
+                req.on('end', function () {
+                    var date = new Date();
+                    try {
+                        var month = date.getMonth();
+                        var day = date.getDate();
+                        var path = "./files/" +  date.getFullYear().toString();                        
+                        path +=  (month < 10) ? ('0'+month.toString()) : month.toString();                        
+                        path +=  (day < 10) ? ('0'+day.toString()) : day.toString() + '.csv';                         
+                        fs.writeFile(path, fullBody, function (err) {
                             if (err)
                                 return console.log(err);
                             console.log("The file was saved!");
@@ -115,7 +167,7 @@ var server = http.createServer(function (req, res) {
 
 function csvToJson(csv) {
     csv = csv.replaceAll(',', '.');
-    var lines = csv.split('\r\n');
+    var lines = csv.split('N');
     var arr = [];
     var firstRow = lines[0].split(' ;');
     for (var l in firstRow)
@@ -128,15 +180,26 @@ function csvToJson(csv) {
     return JSON.stringify(arr);
 }
 
-function sortDir() {
+function sortDir(d, extension) {
     var arr = [];
-    for (var d in dir) {
-        arr.push(dir[d].split('.')[0]);
+    for (var v in d) {
+        arr.push(d[v].split('.')[0]);
     }    
     arr.sort(compareNumbers);    
     arr = arr.reverse();
-    for (var a in arr) arr[a] += '.csv';
-    dir = arr;
+    for (var a in arr) arr[a] += '.' + extension;
+    d = arr;
+    return d;
+}
+
+function readTimes(times){
+    var tts = times.split('N');
+    try{
+        //console.log(tts)
+    }
+    catch(e){
+        console.error('ERROR:',e);
+    }
 }
 
 function compareNumbers(a, b) {

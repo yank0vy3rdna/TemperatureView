@@ -15,7 +15,9 @@
   Разрешение графика <input type="range" style='width: 300px;' min="5" max="1500" value="500" step="5" onchange="setRezol(this.value, (this.value == this.max))" />
   <span id="rezol">50</span><br>
   Размер маркера <input type="range" style='width: 200px;' min="1" max="4" value="3" step="1" onchange="setMarkerSize(this.value)" />
-  <span id="markerSize">3</span><br><br>
+  <span id="markerSize">3</span><br>
+  Толщина линии <input type="range" style='width: 200px;' min="1" max="5" value="2" step="1" onchange="setLineWidth(this.value)" />
+  <span id="lineWidth">2</span><br><br>
   <div class="onoffswitch" style='position: absolute; z-index: 1000'>
     <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked onchange="ChangeAvrgOn(this.checked)">
     <label class="onoffswitch-label" for="myonoffswitch">
@@ -30,6 +32,7 @@
       var rezol = 500;
       var markerSize = 3;
       var AvrgOn = true;
+      var lineW = 2;
       function ChangeAvrgOn(isChecked){
           AvrgOn = isChecked;
           createGraph(answ);
@@ -40,6 +43,12 @@
         else rezol = answ[0].length;
         console.log(rezol,answ[0].length)
         document.getElementById("rezol").innerHTML=rezol;                 
+        createGraph(answ);
+      }
+      function setLineWidth(newValue)
+      {
+        document.getElementById("lineWidth").innerHTML=newValue;
+        lineW = newValue;                
         createGraph(answ);
       }
       function setMarkerSize(newValue)
@@ -120,6 +129,9 @@
 
       var colorsSet = [
           'red','#99cc00','blue','coral','darkgreen','#33ccff','#cc00cc'
+      ];
+      var pipes = [
+          'Вход горячая вода','Улица','Обратка котельная','Обратка горячая вода','Вход котельная'
       ]
       function createGraph(graphs) {
         //interface script
@@ -131,7 +143,7 @@
                 y: [],                
                 //type: 'scatter',
                 mode: 'lines+markers',
-                name: 'pipe ' + (parseInt(g)+1),
+                name: pipes[g],
                 xValueLabel: function (x) {
                     return x;
                 },
@@ -139,7 +151,8 @@
                     size: markerSize                    
                 },      
                 line: {
-                    color: colorsSet[g]
+                    color: colorsSet[g],
+                    width: lineW
                 } 
             }
             if (rezol > graphs[g].length) rezol = graphs[g].length;
@@ -164,7 +177,7 @@
                 x: [new Date(graphs[g][0].x), new Date(graphs[g][graphs[g].length-1].x)],
                 y: [totalSum/graphs[g].length, totalSum/graphs[g].length],
                 mode: 'lines',
-                name: 'Avrg: '+(totalSum/graphs[g].length).toFixed(1),
+                name: 'Средняя: '+(totalSum/graphs[g].length).toFixed(1)+'°С',
                 line: {
                     color: colorsSet[g],
                     width: 1
@@ -175,13 +188,17 @@
         }        
 
         var layout = {
-            title: 'Temperatures',
+            title: 'Температуры в трубах теплоузла',
             legend : {
                 orientation: 'horizontal'
             },
             xaxis: {
                 tickformat: "%H:%M",
-                type: 'date'                 
+                type: 'date',
+                title: 'Время'                 
+            },
+            yaxis: {
+                title: 't°'
             }
         };        
 

@@ -14,9 +14,9 @@
   </select><br>
   Разрешение графика <input type="range" style='width: 300px;' min="5" max="1500" value="500" step="5" onchange="setRezol(this.value, (this.value == this.max))" />
   <span id="rezol">50</span><br>
-  Размер маркера <input type="range" style='width: 200px;' min="1" max="4" value="2" step="1" onchange="setMarkerSize(this.value)" />
-  <span id="markerSize">4</span><br><br>
-  <div class="onoffswitch" style='position: fixed; z-index: 1000'>
+  Размер маркера <input type="range" style='width: 200px;' min="1" max="4" value="3" step="1" onchange="setMarkerSize(this.value)" />
+  <span id="markerSize">3</span><br><br>
+  <div class="onoffswitch" style='position: absolute; z-index: 1000'>
     <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked onchange="ChangeAvrgOn(this.checked)">
     <label class="onoffswitch-label" for="myonoffswitch">
         <span class="onoffswitch-inner"></span>
@@ -28,7 +28,7 @@
   <script>      
       var answ;
       var rezol = 500;
-      var markerSize = 4;
+      var markerSize = 3;
       var AvrgOn = true;
       function ChangeAvrgOn(isChecked){
           AvrgOn = isChecked;
@@ -49,9 +49,15 @@
         createGraph(answ);
       }
 
-      function getData(index){        
+      function getData(index){
+        if (index != 0) clearInterval(currentDataGetting);
+        else currentDataGetting = setInterval(function(){
+                xhr.open('GET','/data', true);
+                xhr.send();
+            }, 50000);     
+        console.log(index);   
         var xhr3 = new XMLHttpRequest();
-        xhr3.open('GET','/getCurrentData?num='+answ(index), true);
+        xhr3.open('GET','/getCurrentData?num='+files[index], true);
         xhr3.send();
         xhr3.onload = function(){            
             answ = JSON.parse(xhr3.responseText);                    
@@ -67,7 +73,7 @@
           answ = JSON.parse(xhr.responseText);          
           createGraph(answ);        
       }
-      setInterval(function(){
+      var currentDataGetting = setInterval(function(){
           xhr.open('GET','/data', true);
           xhr.send();
       }, 50000);
@@ -92,7 +98,7 @@
   </script>
   <script>
       var intTimer;
-      $('#graph').height($(window).height()*0.9);
+      $('#graph').height($(window).height()*0.85);
       var layout = {
         title: 'Temperatures',
         width: $('#graph').width(),
@@ -105,7 +111,7 @@
             divNew.id = 'graph';
             document.body.removeChild(document.getElementById('graph'));
             document.body.appendChild(divNew)*/
-            $('#graph').height($(window).height()*0.9);
+            $('#graph').height($(window).height()*0.85);
             layout.width = $('#graph').width();
             layout.height = $('#graph').height();            
             Plotly.relayout('graph',layout);
@@ -117,7 +123,8 @@
       ]
       function createGraph(graphs) {
         //interface script
-        var data = [];        
+        var data = [];       
+        console.log(graphs) 
         for(var g in graphs){
             var trace = {
                 x: [],
@@ -148,12 +155,13 @@
                     xsum += parseInt(graphs[g][i+ii].x)
                     ysum += parseFloat(graphs[g][i+ii].y)                    
                 }
-                trace.x.push(xsum/coeff);
-                trace.y.push(ysum/coeff);
-            }            
+                var d = new Date(xsum/coeff);                
+                trace.x.push(d);//d.getHours().toString()+':'+d.getMinutes().toString()+':'+d.getSeconds().toString());
+                trace.y.push(ysum/coeff);                
+            }                                                
             if (AvrgOn) var averageTr = {
                 type: 'scatter',
-                x: [-50, graphs[g].length-coeff+50],
+                x: [new Date(graphs[g][0].x), new Date(graphs[g][graphs[g].length-1].x)],
                 y: [totalSum/graphs[g].length, totalSum/graphs[g].length],
                 mode: 'lines',
                 name: 'Avrg: '+(totalSum/graphs[g].length).toFixed(1),
@@ -167,7 +175,14 @@
         }        
 
         var layout = {
-        title: 'Temperatures'
+            title: 'Temperatures',
+            legend : {
+                orientation: 'horizontal'
+            },
+            xaxis: {
+                tickformat: "%H:%M",
+                type: 'date'                 
+            }
         };        
 
         Plotly.newPlot('graph', data, layout);

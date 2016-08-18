@@ -76,21 +76,8 @@ var server = http.createServer(function (req, res) {
             break;
         }
         case '/setAverageTime': {
-            console.log(req.method)
-            if (req.method == 'POST') {
-                console.log('POST REQUEST')
-                console.log("[200] " + req.method + " to " + req.url);
-                var fullBody = '';
-
-                req.on('data', function (chunk) {
-                    // append the current chunk of data to the fullBody variable
-                    fullBody += chunk.toString();
-                });
-
-                req.on('end', function () {
-                    var date = new Date();
-                    try {
-                        var month = date.getMonth();
+            
+                        /*var month = date.getMonth();
                         var day = date.getDate();
                         var path = "./times/" +  date.getFullYear().toString();                        
                         path +=  (month < 10) ? ('0'+month.toString()) : month.toString();                        
@@ -100,24 +87,12 @@ var server = http.createServer(function (req, res) {
                             if (err)
                                 return console.log(err);
                             console.log("The times file was appended!");
-                        });
-                    }
-                    catch (e) {
-                        console.error('ERROR:', 'An occurrence with .times saving');
-                    }
-                    // request ended -> do something with the data
-                    res.writeHead(200, "OK", { 'Content-Type': 'text/html' });
-                    res.end();
-                });
-
-            } else {
-                console.log("[405] " + req.method + " to " + req.url);
-                res.writeHead(405, "Method not supported", { 'Content-Type': 'text/html' });
-                res.end('<html><head><title>405 - Method not supported</title></head><body><h1>Method not supported.</h1></body></html>');
-            }
+                        });*/
+            res.statusCode = 410;
+            res.end('Да харе уже');
             break;
         }
-        case '/setData': {            
+        case '/setData': {                                    
             if (req.method == 'POST') {
                 console.log('POST REQUEST')
                 console.log("[200] " + req.method + " to " + req.url);
@@ -166,16 +141,21 @@ var server = http.createServer(function (req, res) {
 }).listen(port);
 
 function csvToJson(csv) {
-    csv = csv.replaceAll(',', '.');
-    var lines = csv.split('N');
+    csv = csv.replaceAll(',', '.');    
+    var lines = csv.split('N');    
     var arr = [];
     var firstRow = lines[0].split(' ;');
     for (var l in firstRow)
         if (!isNaN(parseFloat(firstRow[l]))) arr.push([]);
-    for (var ll in lines) {
-        var rows = lines[ll].split(' ;');
+    for (var ll in lines) {        
+        var parts = lines[ll].split('T');  
+        if (parts.length < 2) continue;        
+        var time = parts[1].split(':');
+        var hours = time[0];
+        var mins = time[1]; 
+        var rows = parts[0].split(' ;');        
         for (var r in rows)
-            if (!isNaN(parseFloat(rows[r]))) arr[r].push({ x: ll, y: rows[r] });
+            if (!isNaN(parseFloat(rows[r]))) arr[r].push({ x: hours*3600000+mins*60000, y: rows[r] });
     }
     return JSON.stringify(arr);
 }

@@ -165,11 +165,20 @@
             for (var i = 0; i < graphs[g].length-coeff; i += coeff){
                 xsum = ysum = 0;                
                 for (var ii = 0; ii < coeff; ii++){
-                    xsum += parseInt(graphs[g][i+ii].x)
+                    //xsum += parseInt(graphs[g][i+ii].x)
                     ysum += parseFloat(graphs[g][i+ii].y)                    
                 }
-                var d = new Date(xsum/coeff);                
-                trace.x.push(d);//d.getHours().toString()+':'+d.getMinutes().toString()+':'+d.getSeconds().toString());
+                //var d = new Date(xsum/coeff);
+                //console.log(xsum, coeff, d.getDate(), g, d.getHours()+':'+d.getMinutes())                             
+                var timeParts = JSON.parse(graphs[g][i].x);                   
+                var day = timeParts[0];
+                var month = timeParts[1];
+                var year = timeParts[2];          
+                var time = timeParts[3].split(':');
+                var hours = time[0];
+                var mins = time[1]; 
+                var date = new Date(year,month,day,hours,mins,0,0);        
+                trace.x.push(date);
                 trace.y.push(ysum/coeff);                
             }                                                
             if (AvrgOn) var averageTr = {
@@ -201,7 +210,7 @@
                 title: 't°'
             }
         };        
-
+        console.log(data)
         Plotly.newPlot('graph', data, layout);
       }
   </script>

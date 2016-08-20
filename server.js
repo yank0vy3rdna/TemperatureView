@@ -26,15 +26,15 @@ setInterval(function () {
 
 var dir, data, answ, time, dir2;
 
-try {
+//try {
     dir = fs.readdirSync('./files');
-    sortDir();
+    dir = sortDir(dir,'csv');
     data = fs.readFileSync('./files/' + dir[0], 'utf8');
     answ = csvToJson(data.toString());
-}
+/*}
 catch (e) {
-    console.error('ERROR:', 'An occurrence with first-loading');
-}
+    console.error('ERROR:', 'An occurrence with first-loading',e);
+}*/
 
 var port = 8553;
 var serverUrl = "http://127.0.0.1:" + port;
@@ -92,7 +92,7 @@ var server = http.createServer(function (req, res) {
             res.end('Да харе уже');
             break;
         }
-        case '/setData': {                                    
+        case '/setData': {                                          
             if (req.method == 'POST') {
                 console.log('POST REQUEST')
                 console.log("[200] " + req.method + " to " + req.url);
@@ -118,7 +118,7 @@ var server = http.createServer(function (req, res) {
                         });
                     }
                     catch (e) {
-                        console.error('ERROR:', 'An occurrence with .csv saving');
+                        console.error('ERROR:', 'An occurrence with .csv saving',e);
                     }
                     // request ended -> do something with the data
                     res.writeHead(200, "OK", { 'Content-Type': 'text/html' });
@@ -149,14 +149,15 @@ function csvToJson(csv) {
         if (!isNaN(parseFloat(firstRow[l]))) arr.push([]);
     for (var ll in lines) {        
         var parts = lines[ll].split('T');  
-        if (parts.length < 2) continue;        
-        var time = parts[1].split(':');
-        var hours = time[0];
-        var mins = time[1]; 
+        if (parts.length < 2) continue;
+        var timeParts = parts[1].split('.');        
         var rows = parts[0].split(' ;');        
         for (var r in rows)
-            if (!isNaN(parseFloat(rows[r]))) arr[r].push({ x: hours*3600000+mins*60000, y: rows[r] });
+            if (!isNaN(parseFloat(rows[r]))) arr[r].push({ x: JSON.stringify(timeParts), y: rows[r]}); //parts - for debug
     }
+    var log = '';
+    for (var a in arr[0]) log += arr[0][a].x + '\n';
+    fs.writeFile('./log.txt',log);
     return JSON.stringify(arr);
 }
 

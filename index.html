@@ -183,7 +183,7 @@
             }                                                
             if (AvrgOn) var averageTr = {
                 type: 'scatter',
-                x: [new Date(graphs[g][0].x), new Date(graphs[g][graphs[g].length-1].x)],
+                x: [trace.x[0], trace.x[trace.x.length-1]],
                 y: [totalSum/graphs[g].length, totalSum/graphs[g].length],
                 mode: 'lines',
                 name: 'Средняя: '+(totalSum/graphs[g].length).toFixed(1)+'°С',
@@ -191,7 +191,8 @@
                     color: colorsSet[g],
                     width: 1
                 }
-            };            
+            };         
+            console.log(averageTr)   
             data.push(trace);
             if (AvrgOn) data.push(averageTr)    
         }        

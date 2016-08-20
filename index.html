@@ -161,7 +161,7 @@
             var ysum = 0;
             var totalSum = 0;
             if (coeff < 1) coeff = 1;            
-            if (AvrgOn) for (var i2 = 0; i2 < graphs[g].length; i2++) totalSum += parseFloat(graphs[g][i2].y);
+            for (var i2 = 0; i2 < graphs[g].length; i2++) totalSum += parseFloat(graphs[g][i2].y);
             for (var i = 0; i < graphs[g].length-coeff; i += coeff){
                 xsum = ysum = 0;                
                 for (var ii = 0; ii < coeff; ii++){
@@ -180,8 +180,19 @@
                 var date = new Date(year,month,day,hours,mins,0,0);        
                 trace.x.push(date);
                 trace.y.push(ysum/coeff);                
-            }                                                
-            if (AvrgOn) var averageTr = {
+            }           
+            var averageTr = {
+                type: 'scatter',
+                x: [undefined,undefined],
+                y: [totalSum/graphs[g].length, totalSum/graphs[g].length],
+                mode: 'lines',
+                name: 'Средняя: '+(totalSum/graphs[g].length).toFixed(1)+'°С',
+                line: {
+                    color: colorsSet[g],
+                    width: 1
+                }
+            }                                      
+            if (AvrgOn) averageTr = {
                 type: 'scatter',
                 x: [trace.x[0], trace.x[trace.x.length-1]],
                 y: [totalSum/graphs[g].length, totalSum/graphs[g].length],
@@ -194,7 +205,7 @@
             };         
             console.log(averageTr)   
             data.push(trace);
-            if (AvrgOn) data.push(averageTr)    
+            data.push(averageTr)    
         }        
 
         var layout = {

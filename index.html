@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Temperature</title>
+  <title>Теплоснабжение</title>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
   <style>
@@ -31,7 +31,7 @@
       var answ;
       var rezol = 500;
       var markerSize = 3;
-      var AvrgOn = true;
+      var AvrgOn = false;
       var lineW = 2;
       function ChangeAvrgOn(isChecked){
           AvrgOn = isChecked;
@@ -128,10 +128,10 @@
       }
 
       var colorsSet = [
-          'red','#99cc00','blue','coral','darkgreen','#33ccff','#cc00cc'
+          'red','#99cc00','blue','darkgreen','coral','#33ccff','#cc00cc'
       ];
       var pipes = [
-          'Вход горячая вода','Улица','Обратка котельная','Обратка горячая вода','Вход котельная'
+          'Вход котельная','Улица','Обратка котельная','Обратка горячая вода','выход теплообменника (горячая вода)'
       ]
       function createGraph(graphs) {
         //interface script
@@ -209,7 +209,7 @@
         }        
 
         var layout = {
-            title: 'Температуры в трубах теплоузла',
+            title: 'Температура воды в трубах теплоузла дома ул.Мичурина,29',
             legend : {
                 orientation: 'horizontal'
             },

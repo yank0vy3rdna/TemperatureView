@@ -132,12 +132,17 @@
       ];
       var pipes = [
           'Котельная','Улица','Обратка котельная','Обратка горячая вода','Горячая вода'
+      ];
+      var order = [
+          0, 2, 4, 3, 1
       ]
       function createGraph(graphs) {
         //interface script
         var data = [];       
         console.log(graphs) 
-        for(var g in graphs){
+        for(var a in order){
+            var g = order[a];
+            console.log(g)
             var trace = {
                 x: [],
                 y: [],                

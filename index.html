@@ -57,7 +57,6 @@
         markerSize = newValue;                
         createGraph(answ);
       }
-
       function getData(index){
         if (index != 0) clearInterval(currentDataGetting);
         else currentDataGetting = setInterval(function(){
@@ -86,7 +85,6 @@
           xhr.open('GET','/data', true);
           xhr.send();
       }, 50000);
-
       var files;
       var xhr2 = new XMLHttpRequest();
       xhr2.open('GET','/getFilesList', true);
@@ -99,8 +97,10 @@
           }                  
           for (var f in files){
               var opt = document.createElement('option');
-              var d = files[f].split('.')[0].toString();                            
-              opt.innerHTML = d[6]+d[7]+'.'+d[4]+d[5]+'.'+d[0]+d[1]+d[2]+d[3];
+			  //console.log(files[f]);
+              var d = files[f].split('.');			  
+			  //console.log(d);
+              opt.innerHTML = d[0]+'.'+d[1]+'.'+d[2];//d[6]+d[7]+'.'+d[4]+d[5]+'.'+d[0]+d[1]+d[2]+d[3];
               select.appendChild(opt); 
           }
       }
@@ -126,7 +126,6 @@
             Plotly.relayout('graph',layout);
           }, 100);          
       }
-
       var colorsSet = [
           'red','#99cc00','blue','darkgreen','coral','#33ccff','#cc00cc'
       ];
@@ -177,7 +176,7 @@
                 //console.log(xsum, coeff, d.getDate(), g, d.getHours()+':'+d.getMinutes())                             
                 var timeParts = JSON.parse(graphs[g][i].x);                   
                 var day = timeParts[0];
-                var month = timeParts[1];
+                var month = timeParts[1]+1;
                 var year = timeParts[2];          
                 var time = timeParts[3].split(':');
                 var hours = time[0];
@@ -212,7 +211,6 @@
             data.push(trace);
             data.push(averageTr)    
         }        
-
         var layout = {
             title: 'Температура воды в трубах теплоузла дома ул.Мичурина,29',
             legend : {

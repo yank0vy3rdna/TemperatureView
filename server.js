@@ -10,31 +10,32 @@ var selected = '';
 var index = fs.readFileSync('./index.html');
 var averageTime = 100;
 
-setInterval(function () {
+/*setInterval(function () {
     index = fs.readFileSync('./index.html');
-    dir = fs.readdirSync('./files');
+    dir = fs.readdirSync(path);
     //dir2 = fs.readdirSync('./times');
     if (dir.length < 1) return;
     dir = sortDir(dir,'csv');
-    //dir2 = sortDir(dir2,'times');        
-    data = fs.readFileSync('./files/' + dir[0], 'utf8');
+    //dir2 = sortDir(dir2,'times');        	
+    data = fs.readFileSync(path + dir[0], 'utf8');
     //time = fs.readFileSync('./times/' + dir2[0], 'utf8');
     answ = csvToJson(data.toString());
 
     //readTimes(time);
-}, 200); //for debug
+}, 200); //for debug*/
 
 var dir, data, answ, time, dir2;
-
-//try {
-    dir = fs.readdirSync('./files');
+var path = "C:/temp/";
+try {
+    dir = fs.readdirSync(path);	
     dir = sortDir(dir,'csv');
-    data = fs.readFileSync('./files/' + dir[0], 'utf8');
+	console.log(dir);    
+	data = fs.readFileSync(path + dir[0], 'utf8');
     answ = csvToJson(data.toString());
-/*}
+}
 catch (e) {
     console.error('ERROR:', 'An occurrence with first-loading',e);
-}*/
+}
 
 var port = 8553;
 var serverUrl = "http://127.0.0.1:" + port;
@@ -52,7 +53,7 @@ var server = http.createServer(function (req, res) {
         case '/getCurrentData': {
             console.log(urlParsed.query.num);
             try {
-                data = fs.readFileSync('./files/' + urlParsed.query.num, 'utf8');
+                data = fs.readFileSync(path + urlParsed.query.num, 'utf8');
                 answ = csvToJson(data.toString());
 
                 res.statusCode = 200;
@@ -90,6 +91,7 @@ var server = http.createServer(function (req, res) {
                         });*/
             res.statusCode = 410;
             res.end('Да харе уже');
+			console.log('Да харе уже');
             break;
         }
         case '/setData': {                                          
@@ -110,8 +112,8 @@ var server = http.createServer(function (req, res) {
                         var day = date.getDate();
                         var path = "./files/" +  date.getFullYear().toString();                        
                         path +=  (month < 10) ? ('0'+month.toString()) : month.toString();                        
-                        path +=  (day < 10) ? ('0'+day.toString()) : day.toString() + '.csv';                         
-                        fs.writeFile(path, fullBody, function (err) {
+                        path +=  (day < 10) ? ('0'+day.toString()) : day.toString();                       
+                        fs.writeFile(path + '.csv', fullBody, function (err) {
                             if (err)
                                 return console.log(err);
                             console.log("The file was saved!");
@@ -163,12 +165,63 @@ function csvToJson(csv) {
 
 function sortDir(d, extension) {
     var arr = [];
-    for (var v in d) {
-        arr.push(d[v].split('.')[0]);
-    }    
+	for (var v in d){
+		var t = d[v];
+		var t2 = "";
+		t = t.split('.');
+		t.splice(t.length-1,1);
+		var buff = t[0];
+		t[0] = t[t.length-1];
+		t[t.length-1] = buff;
+		console.log(t);
+		for (var v2 = 0; v2 < t.length; v2++)
+		{
+			t2 += t[v2].toString();		
+			console.log(t[v2]);
+		}
+		arr.push(t2);
+	}    
+	console.log(arr);
     arr.sort(compareNumbers);    
+	console.log('---------- sorted -------------');
+	console.log(arr);	
     arr = arr.reverse();
-    for (var a in arr) arr[a] += '.' + extension;
+	console.log('---------- reversed -------------');
+	console.log(arr);	
+    for (var a = 0; a < arr.length; a++) 
+	{
+		var elem = arr[a];		
+		elem = spliceSplit(elem, 4,0,'.');
+		elem = spliceSplit(elem, 7,0,'.');				
+		elem += '.' + extension;
+		arr[a] = elem;
+	}	
+	var buffarr = [];
+	for (var v in arr){
+		var t = arr[v];
+		var t2 = "";
+		t = t.split('.');		
+		var buff = t[0];
+		t[0] = t[t.length-2];
+		t[t.length-2] = buff;		
+		for (var v2 = 0; v2 < t.length-1; v2++)
+		{
+			t2 += t[v2].toString();		
+			console.log(t[v2]);
+		}		
+		buffarr.push(t2);
+	}
+	arr = buffarr;	
+	for (var a = 0; a < arr.length; a++) 
+	{
+		var elem = arr[a];		
+		elem = spliceSplit(elem, 2,0,'.');
+		elem = spliceSplit(elem, 5,0,'.');				
+		elem += '.' + extension;
+		arr[a] = elem;
+	}	
+	console.log('---------- formated -------------');
+	console.log(arr);
     d = arr;
     return d;
 }
@@ -183,8 +236,16 @@ function readTimes(times){
     }
 }
 
+function spliceSplit(str, index, count, add) {
+  var ar = str.split('');
+  ar.splice(index, count, add);
+  return ar.join('');
+}
+
 function compareNumbers(a, b) {
-  return a - b;
+	if (typeof a != 'number') a = parseInt(a);
+	if (typeof b != 'number') b = parseInt(b);
+	return a - b;
 }
 
 /*

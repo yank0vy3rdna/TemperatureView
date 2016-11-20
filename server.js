@@ -10,20 +10,6 @@ var selected = '';
 var index = fs.readFileSync('./index.html');
 var averageTime = 100;
 
-/*setInterval(function () {
-    index = fs.readFileSync('./index.html');
-    dir = fs.readdirSync(path);
-    //dir2 = fs.readdirSync('./times');
-    if (dir.length < 1) return;
-    dir = sortDir(dir,'csv');
-    //dir2 = sortDir(dir2,'times');        	
-    data = fs.readFileSync(path + dir[0], 'utf8');
-    //time = fs.readFileSync('./times/' + dir2[0], 'utf8');
-    answ = csvToJson(data.toString());
-
-    //readTimes(time);
-}, 200); //for debug*/
-
 var dir, data, answ, time, dir2;
 var path = "C:/temp/";
 try {
@@ -76,24 +62,6 @@ var server = http.createServer(function (req, res) {
             res.end(index);
             break;
         }
-        case '/setAverageTime': {
-            
-                        /*var month = date.getMonth();
-                        var day = date.getDate();
-                        var path = "./times/" +  date.getFullYear().toString();                        
-                        path +=  (month < 10) ? ('0'+month.toString()) : month.toString();                        
-                        path +=  (day < 10) ? ('0'+day.toString()) : day.toString() + '.times';
-                        console.log('WRITE TIMES FILE',path);      
-                        fs.appendFile(path, fullBody+'N', function (err) {
-                            if (err)
-                                return console.log(err);
-                            console.log("The times file was appended!");
-                        });*/
-            res.statusCode = 410;
-            res.end('Да харе уже');
-			console.log('Да харе уже');
-            break;
-        }
         case '/setData': {                                          
             if (req.method == 'POST') {
                 console.log('POST REQUEST')
@@ -101,7 +69,6 @@ var server = http.createServer(function (req, res) {
                 var fullBody = '';
 
                 req.on('data', function (chunk) {
-                    // append the current chunk of data to the fullBody variable
                     fullBody += chunk.toString();
                 });
 
@@ -247,17 +214,3 @@ function compareNumbers(a, b) {
 	if (typeof b != 'number') b = parseInt(b);
 	return a - b;
 }
-
-/*
-request(serverUrl, function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    res.statusCode = 200;
-                    res.end(body); 
-                }
-                else {
-                    res.statusCode = 500;
-                    res.end('Some error...');
-                    console.error(error);
-                }
-            });   
-            */

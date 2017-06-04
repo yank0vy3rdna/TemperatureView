@@ -33,9 +33,9 @@ namespace TopKek
 					Thread.Sleep(10000);
 				}
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
-				Console.WriteLine("Возникло исключение: " + ex.ToString() + "\n  " + ex.Message);
+				Environment.Exit (0);
 			}
 		}
 
@@ -50,16 +50,18 @@ namespace TopKek
 			{
 				// Преобразуем данные в массив байтов
 				byte[] bytes = Encoding.UTF8.GetBytes(datagram);
+				Console.WriteLine("Send data");
 				// Отправляем данные
 				sender.Send(bytes, bytes.Length, endPoint);
+				Console.WriteLine("Sending data");
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
-				Console.WriteLine("Возникло исключение: " + ex.ToString() + "\n  " + ex.Message);
+				Console.WriteLine("Exception!");
+				Environment.Exit (0);
 			}
 			finally
 			{
-				// Закрыть соединение
 				sender.Close();
 			}
 		}
@@ -77,9 +79,13 @@ namespace TopKek
 				while (true)
 				{
 					// Ожидание дейтаграммы
+					Console.WriteLine("Initializing buffers");
 					byte[] receiveBytes = receivingUdpClient.Receive(ref RemoteIpEndPoint);
 					bool trig = true;
 					int val = 0;
+					Console.WriteLine("Buffers initialized");
+
+					Console.WriteLine("Reading Data");
 					while(trig)
 					{
 						if(receiveBytes[val*3]==0 && receiveBytes[val*3+1]==0 &&receiveBytes[val*3+2]==0){
@@ -88,11 +94,12 @@ namespace TopKek
 						}
 						val++;
 					}
-
+					Console.WriteLine("Nice Read");
 					Console.WriteLine("Количество датчиков: " + countDevices);
 					if (countDevices != 5){
 						continue;
 					}
+					Console.WriteLine("Forming data");
 					double[] values = new double[countDevices];
 					for(int i = 0; i < countDevices;i++){
 						double cel = receiveBytes[i*3];
@@ -109,6 +116,9 @@ namespace TopKek
 					Console.WriteLine();
 					Console.WriteLine("---");
 					Console.WriteLine();
+
+					Console.WriteLine("Nice forming");
+					Console.WriteLine("Write to file");
 					string path = @"c:\temp\" + DateTime.Today.ToString() + ".csv";
 					path = path.Replace(" 0:00:00", "");
 					Console.WriteLine(path);
@@ -119,12 +129,15 @@ namespace TopKek
 					time = time.Replace(" ",".");
 					time = time.Remove(time.Length-3,3);
 					File.AppendAllText(path, "T" + time+ "TN");
+					Console.WriteLine("Nice write to file");
 					Thread.Sleep(5);
 				}
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
-				Console.WriteLine("Возникло исключение: " + ex.ToString() + "\n  " + ex.Message);
+
+				Console.WriteLine("Exception!");
+				Environment.Exit (0);
 			}
 		}
 	}
